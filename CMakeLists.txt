@@ -1,11 +1,22 @@
-cmake_minimum_required(VERSION 3.13)
+cmake_minimum_required(VERSION 3.10)
 
 PROJECT(MyLuaIntf)
-include_directories(${CMAKE_SOURCE_DIR}/3rd/lua)
-include_directories(${CMAKE_SOURCE_DIR}/3rd/LuaIntf)
+# cmake helper functions
+include(${CMAKE_SOURCE_DIR}/utility.cmake)
 
-file(GLOB_RECURSE CRCS *.c)
-file(GLOB_RECURSE SRCS *.cpp)
-file(GLOB_RECURSE HDRS *.h)
 
-ADD_EXECUTABLE(MyLuaIntf src/main.c ${CRCS} ${SRCS} ${HDRS})
+#include_directories(${CMAKE_SOURCE_DIR}/3rd/lua)
+#include_directories(${CMAKE_SOURCE_DIR}/3rd/LuaIntf)
+
+# files
+FILE(GLOB_RECURSE ide_source_list
+    "${CMAKE_SOURCE_DIR}/src/*.c"
+	"${CMAKE_SOURCE_DIR}/src/*.cpp"
+	"${CMAKE_SOURCE_DIR}/src/*.h"
+	"${CMAKE_SOURCE_DIR}/src/*.cxx"
+	"${CMAKE_SOURCE_DIR}/src/*.hpp")
+
+# library
+createSrcGroups(ide_source_list)
+
+ADD_EXECUTABLE(MyLuaIntf ${ide_source_list})
