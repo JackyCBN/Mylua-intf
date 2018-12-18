@@ -34,7 +34,7 @@
  * otherwise you need to compile some of the .cpp file separately.
  */
 #ifndef LUAINTF_HEADERS_ONLY
-    #define LUAINTF_HEADERS_ONLY 1
+    #define LUAINTF_HEADERS_ONLY 0
 #endif
 
 /**

@@ -4,9 +4,8 @@ PROJECT(MyLuaIntf)
 # cmake helper functions
 include(${CMAKE_SOURCE_DIR}/utility.cmake)
 
-
-#include_directories(${CMAKE_SOURCE_DIR}/3rd/lua)
-#include_directories(${CMAKE_SOURCE_DIR}/3rd/LuaIntf)
+include_directories(${CMAKE_SOURCE_DIR}/src/3rd/lua/src)
+include_directories(${CMAKE_SOURCE_DIR}/src/3rd)
 
 # files
 FILE(GLOB_RECURSE ide_source_list
