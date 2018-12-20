@@ -1,0 +1,45 @@
+1. Lua Native Api Wrap
+2. Variable
+		C++ --> Lua
+			1) value copy(for small size)
+				a) basic lua type
+				b) trival var (no destructor or trival destructor)  
+				c) class var (register gc: call destructor)
+				
+			2) const ref copy (for big size class )
+			3) share ptr 
+			4) base class ptr ??
+		Lua --> C++
+			1) basic lua type
+			2) userdata: 
+				a) use template, then get template meta.
+				b) get var's meta
+				c) check is correct
+			3) try get ??
+			4) get real type??
+			5) why inherit not implement by meta ??
+3. function binding
+	1) static function
+	2) lambda function
+	3) class member function
+	4) class member var
+	5) property
+	6) parameter(input)
+		a) default
+		b) opt
+		c) how to do error tip
+	7) ret (output)
+		a) mult ret
+3. Class binding	
+	1) function binding
+	2) implement meta relation enter lua
+4. module binding
+	1) 
+5. meta function 
+	1) how to auto generate like tolua
+	
+	
+extend:
+	1) common binding for lua and C#
+
+	
