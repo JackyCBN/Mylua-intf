@@ -32,5 +32,6 @@ set_target_properties(MyLuaIntf PROPERTIES RUNTIME_OUTPUT_DIRECTORY_DEBUG "${CMA
 set_target_properties(MyLuaIntf PROPERTIES RUNTIME_OUTPUT_DIRECTORY_RELEASE "${CMAKE_SOURCE_DIR}/Bin/Release")
 
 if(MSVC)
+	set_property(TARGET MyLuaIntf PROPERTY VS_DEBUGGER_COMMAND_ARGUMENTS "${CMAKE_SOURCE_DIR}/res/main.lua" )
 	target_compile_options(MyLuaIntf PRIVATE "/Zc:__cplusplus")
 endif(MSVC)

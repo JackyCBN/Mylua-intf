@@ -25,32 +25,32 @@ namespace LuaIntf
 
 	//---------------------------------------------------------------------------
 
-	//namespace Lua
-	//{
-	//	/**
-	//	 * Push value onto Lua stack
-	//	 */
-	//	template <typename T>
-	//	inline void push(lua_State* L, const T& v)
-	//	{
-	//		LuaType<T>::push(L, v);
-	//	}
+	namespace Lua
+	{
+		/**
+		 * Push value onto Lua stack
+		 */
+		template <typename T>
+		inline void push(lua_State* L, const T& v)
+		{
+			LuaType<T>::push(L, v);
+		}
 
-	//	/**
-	//	 * Push string value onto Lua stack
-	//	 */
-	//	inline void push(lua_State* L, const char* v, int len)
-	//	{
-	//		lua_pushlstring(L, v, len);
-	//	}
+		/**
+		 * Push string value onto Lua stack
+		 */
+		inline void push(lua_State* L, const char* v, int len)
+		{
+			lua_pushlstring(L, v, len);
+		}
 
-	//	/**
-	//	 * Push nil onto Lua stack
-	//	 */
-	//	inline void push(lua_State* L, std::nullptr_t)
-	//	{
-	//		lua_pushnil(L);
-	//	}
+		/**
+		 * Push nil onto Lua stack
+		 */
+		inline void push(lua_State* L, std::nullptr_t)
+		{
+			lua_pushnil(L);
+		}
 
 	//	/**
 	//	 * Get value from Lua stack, stack is not changed
@@ -212,7 +212,7 @@ namespace LuaIntf
 	//		exec(L, expr.c_str(), 1);
 	//		return pop<T>(L);
 	//	}
-	//}
+	}
 
 	//---------------------------------------------------------------------------
 
@@ -502,7 +502,7 @@ namespace LuaIntf
 		}
 		const char* checkString(int idx, size_t* len=nullptr)const
 		{
-			return  luaL_checkstring(L, idx, len);
+			return  luaL_checklstring(L, idx, len);
 		}
 		const char* optString(int idx, const char* def, size_t* len=nullptr) const
 		{
@@ -699,6 +699,144 @@ namespace LuaIntf
 		{
 			lua_setfield(L, table_idx, k);
 		}
+
+#if LUA_VERSION_NUM == 501
+		int yield(int num_results) const
+		{
+			return lua_yield(L, num_results);
+		}
+#elif LUA_VERSION_NUM == 502
+		int yield(int num_results, int ctx = 0, lua_CFunction k = nullptr) const
+		{
+			return lua_yieldk(L, num_results, ctx, k);
+		}
+#else
+		int yield(int num_results, int ctx = 0, lua_KFunction k = nullptr) const
+		{
+			return lua_yieldk(L, num_results, ctx, k);
+		}
+#endif
+
+#if LUA_VERSION_NUM == 501
+		int resume(int num_args) const
+		{
+			return lua_resume(L, num_args);
+		}
+#else
+		int resume(int num_args, lua_State* from = nullptr) const
+		{
+			return lua_resume(L, from, num_args);
+		}
+#endif
+		int status() const
+		{
+			return lua_status(L);
+		}
+
+		int gc(int what = LUA_GCCOLLECT, int data=0) const
+		{
+			return lua_gc(L, what, data);
+		}
+// miscellaneous functions
+		void where(int level = 0) const
+		{
+			luaL_where(L, level);
+		}
+		int error() const
+		{
+			return lua_error(L);
+		}
+		int error(const char* fmt, ...) const;
+
+		int argError(int idx, const char* msg) const
+		{
+			return luaL_argerror(L, idx, msg);
+		}
+		void trackback(const LuaState& that, const char* msg = nullptr, int level = 0) const
+		{
+			luaL_traceback(L, that.L, msg, level);
+		}
+// aux functions
+		 void concat(int n) const
+		{
+			 lua_concat(L, n);
+		}
+		void getRef(int ref) const
+		{
+			lua_rawgeti(L, LUA_REGISTRYINDEX, ref);
+		}
+		int ref() const
+		{
+			return luaL_ref(L, LUA_REGISTRYINDEX);
+		}
+		void unref(int ref) const
+		{
+			luaL_unref(L, LUA_REGISTRYINDEX, ref);
+		}
+		int refTable(int table_idx) const
+		{
+			return  luaL_ref(L, table_idx);
+		}
+		void unrefTable(int table_idx, int ref) const
+		{
+			luaL_unref(L, table_idx, ref);
+		}
+// debug interface
+		bool stack(int level, lua_Debug* ar) const
+		{
+			return lua_getstack(L, level, ar);
+		}
+		bool getInfo(const char* what, lua_Debug* ar) const
+		{
+			return lua_getinfo(L, what, ar);
+		}
+		const char* getLocal(const lua_Debug* ar, int n) const
+		{
+			return lua_getlocal(L, ar, n);
+		}
+		const char* setLocal(const lua_Debug* ar, int n) const
+		{
+			return lua_setlocal(L, ar, n);
+		}
+		const char* getUpvalue(int func_idx, int n) const
+		{
+			return lua_getupvalue(L, func_idx, n);
+		}
+		const char* setUpvalue(int func_idx, int n) const
+		{
+			return lua_setupvalue(L, func_idx, n);
+		}
+#if LUA_VERSION_NUM >= 502
+		void* upvalueId(int func_idx, int n) const
+		{
+			return lua_upvalueid(L, func_idx, n);
+		}
+
+		void upvalueJoin(int func_idx1, int n1, int func_idx2, int n2) const
+		{
+			lua_upvaluejoin(L, func_idx1, n1, func_idx2, n2);
+		}
+#endif
+		void setHook(lua_Hook func, int mask, int count) const
+		{
+			lua_sethook(L, func, mask, count);
+		}
+
+		lua_Hook hook() const
+		{
+			return lua_gethook(L);
+		}
+
+		int hookMask() const
+		{
+			return lua_gethookmask(L);
+		}
+
+		int hookCount() const
+		{
+			return lua_gethookcount(L);
+		}
+
 	private:
 		lua_State* L;
 	};
