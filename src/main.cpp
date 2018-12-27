@@ -5,6 +5,12 @@
 
 using namespace LuaIntf;
 using namespace std;
+
+enum ETest
+{
+	a,
+	b
+};
 int main(int argc, char* argv[])
 {
    lua_State* L = luaL_newstate();
@@ -25,7 +31,9 @@ int main(int argc, char* argv[])
 		//R"(G:\Code\lua\Mylua-intf\res\main.lua)"
 		std::cout << "load lua file:" << argv[1] << std::endl;
 		luaL_dofile(L, argv[1]);
-		Lua::push(L, true);
+		Lua::push(L, ETest::a);
+
+		std::cout << typeid(std::enable_if_t<std::is_enum_v<ETest>, int>).name() << std::endl;
 	}
 	else
 	{
