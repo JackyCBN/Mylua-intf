@@ -699,6 +699,163 @@ namespace LuaIntf
 		{
 			lua_setfield(L, table_idx, k);
 		}
+#ifdef LUA_VERSION_NUM >= 503
+		void setField(int table_idx, int i) const
+		{
+			lua_seti(L, table_idx, i);
+		}
+#endif
+		void rawsetTable(int table_idx) const
+		{
+			lua_rawset(L, table_idx);
+		}
+		void rawsetField(int table_idx, int i) const
+		{
+			lua_rawseti(L, table_idx, i);
+		}
+		void rawsetField(int table_idx, const void* p) const
+		{
+			lua_rawgetp(L, table_idx, p);
+		}
+		void setMetaTable(int table_idx) const
+		{
+			lua_setmetatable(L, table_idx);
+		}
+		void setMetaTable(const char* type_name) const
+		{
+			luaL_setmetatable(L, type_name);
+		}
+		void setUserValue(int idx) const
+		{
+			lua_setuservalue(L, idx);
+		}
+		void registerCFunction(const char* name, lua_CFunction fn, int closure = 0) const
+		{
+			lua_pushcclosure(L, fn, closure);
+			lua_setglobal(L, name);
+		}
+// 'load' and 'call' functions (load and run Lua code)
+#if LUA_VERSION_NUM == 501
+		void call(int num_args, int num_results) const
+		{
+			lua_call(L, num_args, num_results);
+		}
+#elif LUA_VERSION_NUM == 502
+		void call(int num_args, int num_results, int ctx = 0, lua_CFunction k = nullptr) const
+		{
+			lua_callk(L, num_args, num_results, ctx, k);
+		}
+#else 
+		void call(int num_args, int num_results, int ctx=0, lua_KFunction k = nullptr) const
+		{
+			lua_callk(L, num_args, num_results, ctx, k);
+		}
+#endif
+
+#if LUA_VERSION_NUM == 501
+		int pcall(int num_args, int num_results, int err_func_idx) const
+		{
+			return lua_pcall(L, num_args, num_results, err_func_idx);
+		}
+#elif LUA_VERSION_NUM == 502
+		int pcall(int num_args, int num_results, int err_func_idx, int ctx = 0, lua_CFunction k = nullptr) const
+		{
+			return lua_pcallk(L, num_args, num_results, err_func_idx, ctx, k);
+		}
+#else
+		int pcall(int num_args, int num_results, int err_func_idx, int ctx = 0, lua_KFunction k = nullptr) const
+		{
+			return lua_pcallk(L, num_args, num_results, err_func_idx, ctx, k);
+		}
+#endif	
+
+		bool callMeta(int idx, const char* field) const
+		{
+			luaL_callmeta(L, idx, field);
+		}
+#if LUA_VERSION_NUM == 501
+		int load(lua_Reader reader, void* dt, const char* chunk_name) const
+		{
+			return lua_load(L, reader, dt, chunk_name);
+		}
+
+		int loadFile(const char* filename) const
+		{
+			return luaL_loadfile(L, filename);
+		}
+
+		int loadBuffer(const char* buff, size_t sz, const char* chunk_name) const
+		{
+			return luaL_loadbuffer(L, buff, sz, chunk_name);
+		}
+#else
+		int load(lua_Reader reader, void* dt, const char* chunk_name, const char* mode = nullptr) const
+		{
+			return lua_load(L, reader, dt, chunk_name, mode);
+		}
+
+		int loadFile(const char* filename, const char* mode = nullptr) const
+		{
+			return luaL_loadfilex(L, filename, mode);
+		}
+
+		int loadBuffer(const char* buff, size_t sz, const char* chunk_name, const char* mode = nullptr) const
+		{
+			return luaL_loadbufferx(L, buff, sz, chunk_name, mode);
+		}
+#endif
+
+
+		int loadString(const char* s) const
+		{
+			return luaL_loadstring(L, s);
+		}
+		void openLibs()
+		{
+			luaL_openlibs(L);
+		}
+#if LUA_VERSION_NUM >= 502
+		void require(const char* mod_name, lua_CFunction open_func, bool set_global = true)
+		{
+			luaL_requiref(L, mod_name, open_func, set_global);
+		}
+
+		int execResult(int stat) const
+		{
+			return luaL_execresult(L, stat);
+		}
+#endif
+		bool doFile(const char* filename) const
+		{
+			return luaL_dofile(L, filename);
+		}
+		bool doString(const char* s) const
+		{
+			return luaL_dostring(L, s);
+		}
+#if LUA_VERSION_NUM <= 502
+		int dump(lua_Writer writer, void* data) const
+		{
+			return lua_dump(L, writer, data);
+		}
+#endif
+		int dump(lua_Writer writer, void* data, bool strip = false) const
+		{
+			return  lua_dump(L, writer, data, strip);
+		}
+
+		int fileResult(int stat, const char* file_name) const
+		{
+			return luaL_fileresult(L, stat, file_name);
+		}
+// coroutine functions
+#if LUA_VERSION_NUM >= 503
+		bool isYieldable() const
+		{
+			return lua_isyieldable(L);
+		}
+#endif
+
 	private:
 		lua_State* L;
 	};
