@@ -68,10 +68,12 @@ void testGc(lua_State* L)
 	lua_setmetatable(L, -2);
 	stackCount = lua_gettop(L);
 
-	lua_rawsetp(L, -2, p);
+	//lua_rawsetp(L, -2, p);
+	lua_rawsetp(L, -2, nullptr);
 	stackCount = lua_gettop(L);
 
-	lua_rawgetp(L, -1, p);
+	//lua_rawgetp(L, -1, p);
+	lua_rawgetp(L, -1, nullptr);
 	stackCount = lua_gettop(L);
 	bool b = lua_isnil(L, -1);
 	b = lua_isuserdata(L, -1);
@@ -97,6 +99,27 @@ int main(int argc, char* argv[])
    lua_State* L = luaL_newstate();
 
    luaL_openlibs(L);
+   //testGc(L);
+   int count = 0;
+   int test = 0;
+   count = lua_gettop(L);
+   test = lua_rawlen(L, LUA_REGISTRYINDEX);
+   count = lua_gettop(L);
+   lua_rawgeti(L, LUA_REGISTRYINDEX, 2);
+   count = lua_gettop(L);
+   lua_pushglobaltable(L);
+   //int a = lua_compare(L, -2, -1, LUA_OPEQ);
+   //lua_pushvalue(L, LUA_REGISTRYINDEX);
+   int ref = luaL_ref(L, LUA_REGISTRYINDEX);
+
+   lua_rawgeti(L, LUA_REGISTRYINDEX, ref);
+   //int a = lua_compare(L, -2, -1, LUA_OPEQ);
+   //lua_pushvalue(L, LUA_REGISTRYINDEX);
+   ref = luaL_ref(L, LUA_REGISTRYINDEX);
+ //  lua_pushvalue(L, LUA_REGISTRYINDEX);
+ //  int a = lua_compare(L, -3, -1, LUA_OPEQ);
+	//a = lua_compare(L, -3, -2, LUA_OPEQ);
+	
 	// load file
 	if(argc>1)
 	{

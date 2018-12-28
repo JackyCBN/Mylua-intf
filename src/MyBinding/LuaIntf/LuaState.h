@@ -198,20 +198,20 @@ namespace LuaIntf
 		 */
 		void exec(lua_State* L, const char* lua_expr, int num_results = 0);
 
-	//	/**
-	//	 * Envaluate the given Lua expression, and return the value
-	//	 *
-	//	 * @param L the lua state
-	//	 * @param lua_expr the lua expression
-	//	 */
-	//	template <typename T = LuaRef>
-	//	inline T eval(lua_State* L, const char* lua_expr)
-	//	{
-	//		std::string expr("return ");
-	//		expr += lua_expr;
-	//		exec(L, expr.c_str(), 1);
-	//		return pop<T>(L);
-	//	}
+		/**
+		 * Envaluate the given Lua expression, and return the value
+		 *
+		 * @param L the lua state
+		 * @param lua_expr the lua expression
+		 */
+		template <typename T = LuaRef>
+		inline T eval(lua_State* L, const char* lua_expr)
+		{
+			std::string expr("return ");
+			expr += lua_expr;
+			exec(L, expr.c_str(), 1);
+			return pop<T>(L);
+		}
 	}
 
 	//---------------------------------------------------------------------------

@@ -24,6 +24,8 @@
 // DEALINGS IN THE SOFTWARE.
 //
 
+#include <cstdarg>
+#include <cstdarg>
 #ifndef LUAINTF_H
 #include "LuaIntf/LuaIntf.h"
 using namespace LuaIntf;
@@ -75,38 +77,40 @@ LUA_INLINE void Lua::popToGlobal(lua_State* L, const char* name)
 	}
 }
 
-//LUA_INLINE void Lua::exec(lua_State* L, const char* lua_expr, int num_results)
-//{
-//	lua_pushcfunction(L, &LuaException::traceback);
-//
-//	int err = luaL_loadstring(L, lua_expr);
-//
-//	if (err == LUA_OK) {
-//		err = lua_pcall(L, 0, num_results, -2);
-//	}
-//
-//	if (err != LUA_OK) {
-//		lua_remove(L, -2);
-//		throw LuaException(L);
-//	}
-//
-//	lua_remove(L, -(num_results + 1));
-//}
-//
-//LUA_INLINE const char* LuaState::pushf(const char* fmt, ...) const
-//{
-//	va_list argp;
-//	va_start(argp, fmt);
-//	const char* ret = lua_pushvfstring(L, fmt, argp);
-//	va_end(argp);
-//	return ret;
-//}
-//
-//LUA_INLINE int LuaState::error(const char* fmt, ...) const
-//{
-//	va_list argp;
-//	va_start(argp, fmt);
-//	lua_pushvfstring(L, fmt, argp);
-//	va_end(argp);
-//	return lua_error(L);
-//}
+LUA_INLINE void Lua::exec(lua_State* L, const char* lua_expr, int num_results)
+{
+	lua_pushcfunction(L, &LuaException::traceback);
+	int err =  luaL_loadstring(L, lua_expr);
+	if(err == LUA_OK)
+	{
+		err = lua_pcall(L, 0, num_results, -2);
+	}
+
+	if(err != LUA_OK)
+	{		
+		lua_remove(L, -2);
+		throw LuaException(L);
+	}
+
+	lua_remove(L, -(num_results + 1));
+
+}
+
+LUA_INLINE const char* LuaState::pushf(const char* fmt, ...) const
+{
+	va_list argp;
+	va_start(argp, fmt);
+	const char* ret = lua_pushvfstring(L, fmt, argp);
+	va_end(argp);
+
+	return ret;
+}
+
+LUA_INLINE int LuaState::error(const char* fmt, ...) const
+{
+	va_list argp;
+	va_start(argp, fmt);
+	lua_pushvfstring(L, fmt, argp);
+	va_end(argp);
+	return lua_error(L);
+}
