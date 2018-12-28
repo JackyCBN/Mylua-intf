@@ -699,12 +699,14 @@ namespace LuaIntf
 		{
 			lua_setfield(L, table_idx, k);
 		}
-#ifdef LUA_VERSION_NUM >= 503
+
+#if LUA_VERSION_NUM >= 503
 		void setField(int table_idx, int i) const
 		{
 			lua_seti(L, table_idx, i);
 		}
 #endif
+
 		void rawsetTable(int table_idx) const
 		{
 			lua_rawset(L, table_idx);
