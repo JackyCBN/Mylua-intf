@@ -52,151 +52,151 @@ namespace LuaIntf
 			lua_pushnil(L);
 		}
 
-	//	/**
-	//	 * Get value from Lua stack, stack is not changed
-	//	 */
-	//	template <typename T = LuaRef>
-	//	inline T get(lua_State* L, int index)
-	//	{
-	//		return LuaType<T>::get(L, index);
-	//	}
+		/**
+		 * Get value from Lua stack, stack is not changed
+		 */
+		template <typename T = LuaRef>
+		inline T get(lua_State* L, int index)
+		{
+			return LuaType<T>::get(L, index);
+		}
 
-	//	/**
-	//	 * Get value from Lua stack, stack is not changed,
-	//	 * you can specify optional value if the value is nil or none
-	//	 */
-	//	template <typename T>
-	//	inline T opt(lua_State* L, int index, const T& def)
-	//	{
-	//		return LuaType<T>::opt(L, index, def);
-	//	}
+		/**
+		 * Get value from Lua stack, stack is not changed,
+		 * you can specify optional value if the value is nil or none
+		 */
+		template <typename T>
+		inline T opt(lua_State* L, int index, const T& def)
+		{
+			return LuaType<T>::opt(L, index, def);
+		}
 
-	//	/**
-	//	 * Pop the value from top of Lua stack,
-	//	 * the top value of Lua stack is removed
-	//	 */
-	//	template <typename T = LuaRef>
-	//	inline T pop(lua_State* L)
-	//	{
-	//		T v = LuaType<T>::get(L, -1);
-	//		lua_pop(L, 1);
-	//		return v;
-	//	}
+		/**
+		 * Pop the value from top of Lua stack,
+		 * the top value of Lua stack is removed
+		 */
+		template <typename T = LuaRef>
+		inline T pop(lua_State* L)
+		{
+			T v = LuaType<T>::get(L, -1);
+			lua_pop(L, 1);
+			return v;
+		}
 
-	//	/**
-	//	 * Push STL-style list as Lua table onto Lua stack.
-	//	 */
-	//	template <typename LIST>
-	//	inline void pushList(lua_State* L, const LIST& list)
-	//	{
-	//		lua_newtable(L);
-	//		int i = 1;
-	//		for (auto& v : list) {
-	//			push(L, v);
-	//			lua_rawseti(L, -2, i++);
-	//		}
-	//	}
+		/**
+		 * Push STL-style list as Lua table onto Lua stack.
+		 */
+		template <typename LIST>
+		inline void pushList(lua_State* L, const LIST& list)
+		{
+			lua_newtable(L);
+			int i = 1;
+			for (auto& v : list) {
+				push(L, v);
+				lua_rawseti(L, -2, i++);
+			}
+		}
 
-	//	/**
-	//	 * Get STL-style list from Lua table at the given index.
-	//	 */
-	//	template <typename LIST>
-	//	inline LIST getList(lua_State* L, int index)
-	//	{
-	//		luaL_checktype(L, index, LUA_TTABLE);
-	//		LIST list;
-	//		int n = int(luaL_len(L, index));
-	//		for (int i = 1; i <= n; i++) {
-	//			lua_rawgeti(L, index, i);
-	//			list.push_back(pop<typename LIST::value_type>(L));
-	//		}
-	//		return list;
-	//	}
+		/**
+		 * Get STL-style list from Lua table at the given index.
+		 */
+		template <typename LIST>
+		inline LIST getList(lua_State* L, int index)
+		{
+			luaL_checktype(L, index, LUA_TTABLE);
+			LIST list;
+			int n = int(luaL_len(L, index));
+			for (int i = 1; i <= n; i++) {
+				lua_rawgeti(L, index, i);
+				list.push_back(pop<typename LIST::value_type>(L));
+			}
+			return list;
+		}
 
-	//	/**
-	//	 * Push STL-style map as Lua table onto Lua stack.
-	//	 */
-	//	template <typename MAP>
-	//	inline void pushMap(lua_State* L, const MAP& map)
-	//	{
-	//		lua_newtable(L);
-	//		for (auto it = map.begin(); it != map.end(); ++it) {
-	//			push(L, it->first);
-	//			push(L, it->second);
-	//			lua_settable(L, -3);
-	//		}
-	//	}
+		/**
+		 * Push STL-style map as Lua table onto Lua stack.
+		 */
+		template <typename MAP>
+		inline void pushMap(lua_State* L, const MAP& map)
+		{
+			lua_newtable(L);
+			for (auto it = map.begin(); it != map.end(); ++it) {
+				push(L, it->first);
+				push(L, it->second);
+				lua_settable(L, -3);
+			}
+		}
 
-	//	/**
-	//	 * Get STL-style map from Lua table at the given index.
-	//	 */
-	//	template <typename MAP>
-	//	inline MAP getMap(lua_State* L, int index)
-	//	{
-	//		index = lua_absindex(L, index);
-	//		luaL_checktype(L, index, LUA_TTABLE);
-	//		MAP map;
-	//		lua_pushnil(L);
-	//		while (lua_next(L, index)) {
-	//			typename MAP::key_type key = get<typename MAP::key_type>(L, -2);
-	//			map[key] = pop<typename MAP::mapped_type>(L);
-	//		}
-	//		return map;
-	//	}
+		/**
+		 * Get STL-style map from Lua table at the given index.
+		 */
+		template <typename MAP>
+		inline MAP getMap(lua_State* L, int index)
+		{
+			index = lua_absindex(L, index);
+			luaL_checktype(L, index, LUA_TTABLE);
+			MAP map;
+			lua_pushnil(L);
+			while (lua_next(L, index)) {
+				typename MAP::key_type key = get<typename MAP::key_type>(L, -2);
+				map[key] = pop<typename MAP::mapped_type>(L);
+			}
+			return map;
+		}
 
-	//	/**
-	//	 * Push the named global onto Lua stack, the name may contains '.' to access field of table.
-	//	 * If any sub-table does not exist, this function will return nil.
-	//	 * If any value in the name path is not accessible (not a table or no __index meta-method),
-	//	 * it may result in Lua error.
-	//	 */
-	//	void pushGlobal(lua_State* L, const char* name);
+		/**
+		 * Push the named global onto Lua stack, the name may contains '.' to access field of table.
+		 * If any sub-table does not exist, this function will return nil.
+		 * If any value in the name path is not accessible (not a table or no __index meta-method),
+		 * it may result in Lua error.
+		 */
+		void pushGlobal(lua_State* L, const char* name);
 
-	//	/**
-	//	 * Pop value from top of Lua stack, and set it to the named global,
-	//	 * the name may contains '.' to access field of table.
-	//	 * If any sub-table does not exist or is not accessible (not a table or no __index meta-method),
-	//	 * it may result in Lua error.
-	//	 */
-	//	void popToGlobal(lua_State* L, const char* name);
+		/**
+		 * Pop value from top of Lua stack, and set it to the named global,
+		 * the name may contains '.' to access field of table.
+		 * If any sub-table does not exist or is not accessible (not a table or no __index meta-method),
+		 * it may result in Lua error.
+		 */
+		void popToGlobal(lua_State* L, const char* name);
 
-	//	/**
-	//	 * Get the named global, the Lua stack is not changed
-	//	 */
-	//	template <typename T = LuaRef>
-	//	inline T getGlobal(lua_State* L, const char* name)
-	//	{
-	//		pushGlobal(L, name);
-	//		return pop<T>(L);
-	//	}
+		/**
+		 * Get the named global, the Lua stack is not changed
+		 */
+		template <typename T = LuaRef>
+		inline T getGlobal(lua_State* L, const char* name)
+		{
+			pushGlobal(L, name);
+			return pop<T>(L);
+		}
 
-	//	/**
-	//	 * Set the named global to the specified value, the Lua stack is not changed
-	//	 */
-	//	template <typename T>
-	//	inline void setGlobal(lua_State* L, const char* name, const T& v)
-	//	{
-	//		LuaType<T>::push(L, v);
-	//		popToGlobal(L, name);
-	//	}
+		/**
+		 * Set the named global to the specified value, the Lua stack is not changed
+		 */
+		template <typename T>
+		inline void setGlobal(lua_State* L, const char* name, const T& v)
+		{
+			LuaType<T>::push(L, v);
+			popToGlobal(L, name);
+		}
 
-	//	/**
-	//	 * Execute the given Lua expression,
-	//	 * if you need to return result from the expression, you have to use Lua 'return' keywoard
-	//	 * and specify the number of results to be returned. For example:
-	//	 *
-	//	 * Lua::exec(L, "return x + y", 1);
-	//	 * int r = Lua::pop<int>(L);
-	//	 *
-	//	 * The same code can be rewritten by using eval:
-	//	 *
-	//	 * int r = Lua::eval<int>("x + y");
-	//	 *
-	//	 * @param L the lua state
-	//	 * @param lua_expr the lua expression
-	//	 * @param num_results the number of values to be returned from expression
-	//	 */
-	//	void exec(lua_State* L, const char* lua_expr, int num_results = 0);
+		/**
+		 * Execute the given Lua expression,
+		 * if you need to return result from the expression, you have to use Lua 'return' keywoard
+		 * and specify the number of results to be returned. For example:
+		 *
+		 * Lua::exec(L, "return x + y", 1);
+		 * int r = Lua::pop<int>(L);
+		 *
+		 * The same code can be rewritten by using eval:
+		 *
+		 * int r = Lua::eval<int>("x + y");
+		 *
+		 * @param L the lua state
+		 * @param lua_expr the lua expression
+		 * @param num_results the number of values to be returned from expression
+		 */
+		void exec(lua_State* L, const char* lua_expr, int num_results = 0);
 
 	//	/**
 	//	 * Envaluate the given Lua expression, and return the value
