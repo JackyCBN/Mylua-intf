@@ -1224,78 +1224,78 @@ namespace LuaIntf
 			}
 		}
 
-		//template <typename R, typename... P>
-		//struct Call
-		//{
-		//	static R invoke(lua_State* L, const LuaRef& f, P&&... args)
-		//	{
-		//		lua_pushcfunction(L, &LuaException::traceback);
-		//		f.pushToStack();
-		//		pushArg(L, std::forward<P>(args)...);
-		//		if (lua_pcall(L, sizeof...(P), 1, -int(sizeof...(P) + 2)) != LUA_OK) {
-		//			lua_remove(L, -2);
-		//			throw LuaException(L);
-		//		}
-		//		R v = Lua::get<R>(L, -1);
-		//		lua_pop(L, 2);
-		//		return v;
-		//	}
-		//};
+		template <typename R, typename... P>
+		struct Call
+		{
+			static R invoke(lua_State* L, const LuaRef& f, P&&... args)
+			{
+				lua_pushcfunction(L, &LuaException::traceback);
+				f.pushToStack();
+				pushArg(L, std::forward<P>(args)...);
+				if (lua_pcall(L, sizeof...(P), 1, -int(sizeof...(P) + 2)) != LUA_OK) {
+					lua_remove(L, -2);
+					throw LuaException(L);
+				}
+				R v = Lua::get<R>(L, -1);
+				lua_pop(L, 2);
+				return v;
+			}
+		};
 
-		//template <typename... P>
-		//struct Call <void, P...>
-		//{
-		//	static void invoke(lua_State* L, const LuaRef& f, P&&... args)
-		//	{
-		//		lua_pushcfunction(L, &LuaException::traceback);
-		//		f.pushToStack();
-		//		pushArg(L, std::forward<P>(args)...);
-		//		if (lua_pcall(L, sizeof...(P), 0, -int(sizeof...(P) + 2)) != LUA_OK) {
-		//			lua_remove(L, -2);
-		//			throw LuaException(L);
-		//		}
-		//		lua_pop(L, 1);
-		//	}
-		//};
+		template <typename... P>
+		struct Call <void, P...>
+		{
+			static void invoke(lua_State* L, const LuaRef& f, P&&... args)
+			{
+				lua_pushcfunction(L, &LuaException::traceback);
+				f.pushToStack();
+				pushArg(L, std::forward<P>(args)...);
+				if (lua_pcall(L, sizeof...(P), 0, -int(sizeof...(P) + 2)) != LUA_OK) {
+					lua_remove(L, -2);
+					throw LuaException(L);
+				}
+				lua_pop(L, 1);
+			}
+		};
 
-		//template <typename... R, typename... P>
-		//struct Call <std::tuple<R...>, P...>
-		//{
-		//	static std::tuple<R...> invoke(lua_State* L, const LuaRef& f, P&&... args)
-		//	{
-		//		lua_pushcfunction(L, &LuaException::traceback);
-		//		f.pushToStack();
-		//		pushArg(L, std::forward<P>(args)...);
-		//		if (lua_pcall(L, sizeof...(P), sizeof...(R), -int(sizeof...(P) + 2)) != LUA_OK) {
-		//			lua_remove(L, -2);
-		//			throw LuaException(L);
-		//		}
-		//		std::tuple<R...> ret;
-		//		TupleResult<sizeof...(R), R...>::fill(L, ret);
-		//		lua_pop(L, int(sizeof...(R) + 1));
-		//		return ret;
-		//	}
-		//};
+		template <typename... R, typename... P>
+		struct Call <std::tuple<R...>, P...>
+		{
+			static std::tuple<R...> invoke(lua_State* L, const LuaRef& f, P&&... args)
+			{
+				lua_pushcfunction(L, &LuaException::traceback);
+				f.pushToStack();
+				pushArg(L, std::forward<P>(args)...);
+				if (lua_pcall(L, sizeof...(P), sizeof...(R), -int(sizeof...(P) + 2)) != LUA_OK) {
+					lua_remove(L, -2);
+					throw LuaException(L);
+				}
+				std::tuple<R...> ret;
+				TupleResult<sizeof...(R), R...>::fill(L, ret);
+				lua_pop(L, int(sizeof...(R) + 1));
+				return ret;
+			}
+		};
 
-		//template <size_t N, typename... P>
-		//struct TupleResult
-		//{
-		//	static void fill(lua_State* L, std::tuple<P...>& args)
-		//	{
-		//		using T = typename std::tuple_element<sizeof...(P) - N, std::tuple<P...>>::type;
-		//		std::get<sizeof...(P) - N>(args) = Lua::get<T>(L, -int(N));
-		//		TupleResult<N - 1, P...>::fill(L, args);
-		//	}
-		//};
+		template <size_t N, typename... P>
+		struct TupleResult
+		{
+			static void fill(lua_State* L, std::tuple<P...>& args)
+			{
+				using T = typename std::tuple_element<sizeof...(P) - N, std::tuple<P...>>::type;
+				std::get<sizeof...(P) - N>(args) = Lua::get<T>(L, -int(N));
+				TupleResult<N - 1, P...>::fill(L, args);
+			}
+		};
 
-		//template <typename... P>
-		//struct TupleResult <0, P...>
-		//{
-		//	static void fill(lua_State*, std::tuple<P...>&)
-		//	{
-		//		// template terminate function
-		//	}
-		//};
+		template <typename... P>
+		struct TupleResult <0, P...>
+		{
+			static void fill(lua_State*, std::tuple<P...>&)
+			{
+				// template terminate function
+			}
+		};
 
 		template <typename P0, typename... P>
 		static void pushArg(lua_State* L, P0&& p0, P&&... p)
