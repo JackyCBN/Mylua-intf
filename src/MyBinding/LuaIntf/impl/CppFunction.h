@@ -34,43 +34,43 @@
 class CppFunctor
 {
 public:
-	/**
-	 * Override destructor if you need to perform any cleanup action
-	 */
-	virtual ~CppFunctor() {}
+    /**
+     * Override destructor if you need to perform any cleanup action
+     */
+    virtual ~CppFunctor() {}
 
-	/**
-	 * Override this method to perform lua function
-	 */
-	virtual int run(lua_State* L) = 0;
+    /**
+     * Override this method to perform lua function
+     */
+    virtual int run(lua_State* L) = 0;
 
-	/**
-	 * Create the specified functor as callable lua object on stack
-	 */
-	static int pushToStack(lua_State* L, CppFunctor* f);
+    /**
+     * Create the specified functor as callable lua object on stack
+     */
+    static int pushToStack(lua_State* L, CppFunctor* f);
 
-	/**
-	 * Create the specified functor as callable lua object on stack,
-	 * the functor is created inside userdata. This is different from
-	 * pushToStack, which only keep the functor pointer. This reduces the
-	 * overhead of extra pointer and memory allocation.
-	 */
-	template <typename FUNCTOR, typename... ARGS>
-	static int make(lua_State* L, ARGS&&... args)
-	{
-		void* mem = lua_newuserdata(L, sizeof(FUNCTOR));
-		::new (mem) FUNCTOR(std::forward<ARGS>(args)...);
-		return bind(L, &call, &gc);
-	}
+    /**
+     * Create the specified functor as callable lua object on stack,
+     * the functor is created inside userdata. This is different from
+     * pushToStack, which only keep the functor pointer. This reduces the
+     * overhead of extra pointer and memory allocation.
+     */
+    template <typename FUNCTOR, typename... ARGS>
+    static int make(lua_State* L, ARGS&&... args)
+    {
+        void* mem = lua_newuserdata(L, sizeof(FUNCTOR));
+        ::new (mem) FUNCTOR(std::forward<ARGS>(args)...);
+        return bind(L, &call, &gc);
+    }
 
 private:
-	static int call(lua_State* L);
-	static int gc(lua_State* L);
+    static int call(lua_State* L);
+    static int gc(lua_State* L);
 
-	static int callp(lua_State* L);
-	static int gcp(lua_State* L);
+    static int callp(lua_State* L);
+    static int gcp(lua_State* L);
 
-	static int bind(lua_State* L, lua_CFunction call, lua_CFunction gc);
+    static int bind(lua_State* L, lua_CFunction call, lua_CFunction gc);
 };
 
 //---------------------------------------------------------------------------
@@ -78,20 +78,20 @@ private:
 template <>
 struct LuaTypeMapping <lua_CFunction>
 {
-	static void push(lua_State* L, lua_CFunction f)
-	{
-		lua_pushcfunction(L, f);
-	}
+    static void push(lua_State* L, lua_CFunction f)
+    {
+        lua_pushcfunction(L, f);
+    }
 
-	static lua_CFunction get(lua_State* L, int index)
-	{
-		return lua_tocfunction(L, index);
-	}
+    static lua_CFunction get(lua_State* L, int index)
+    {
+        return lua_tocfunction(L, index);
+    }
 
-	static lua_CFunction opt(lua_State* L, int index, lua_CFunction def)
-	{
-		return lua_isnoneornil(L, index) ? def : lua_tocfunction(L, index);
-	}
+    static lua_CFunction opt(lua_State* L, int index, lua_CFunction def)
+    {
+        return lua_isnoneornil(L, index) ? def : lua_tocfunction(L, index);
+    }
 };
 
 //----------------------------------------------------------------------------
@@ -99,11 +99,11 @@ struct LuaTypeMapping <lua_CFunction>
 template <typename FN>
 struct LuaCppFunctionWrapper
 {
-	[[noreturn]]
-	static const FN& get(lua_State* L, int)
-	{
-		luaL_error(L, "invalid c++ function reference");
-	}
+    [[noreturn]]
+    static const FN& get(lua_State* L, int)
+    {
+        luaL_error(L, "invalid c++ function reference");
+    }
 };
 
 #if LUAINTF_STD_FUNCTION_WRAPPER
@@ -111,13 +111,13 @@ struct LuaCppFunctionWrapper
 template <typename R, typename... P>
 struct LuaCppFunctionWrapper <std::function<R(P...)>>
 {
-	static std::function<R(P...)> get(lua_State* L, int index)
-	{
-		LuaRef ref(L, index);
-		return [ref](P&&... arg) mutable {
-			return ref.call<R>(std::forward<P>(arg)...);
-		};
-	}
+    static std::function<R(P...)> get(lua_State* L, int index)
+    {
+        LuaRef ref(L, index);
+        return [ref] (P&&... arg) mutable {
+            return ref.call<R>(std::forward<P>(arg)...);
+        };
+    }
 };
 
 #endif
@@ -130,54 +130,53 @@ struct LuaCppFunctionWrapper <std::function<R(P...)>>
 template <typename FN>
 struct LuaCppFunction
 {
-	using ReturnType = typename std::conditional<LUAINTF_STD_FUNCTION_WRAPPER, FN, const FN&>::type;
+    using ReturnType = typename std::conditional<LUAINTF_STD_FUNCTION_WRAPPER, FN, const FN&>::type;
 
-	static void push(lua_State* L, const FN& proc)
-	{
-		using CppProc = CppBindMethod<FN>;
-		LuaRef ref = LuaRef::createUserDataFrom(L, proc);
-		ref.pushToStack();
-		lua_pushlightuserdata(L, CppSignature<FN>::value());
-		lua_pushcclosure(L, &CppProc::call, 2);
-	}
+    static void push(lua_State* L, const FN& proc)
+    {
+        using CppProc = CppBindMethod<FN>;
+        LuaRef ref = LuaRef::createUserDataFrom(L, proc);
+        ref.pushToStack();
+        lua_pushlightuserdata(L, CppSignature<FN>::value());
+        lua_pushcclosure(L, &CppProc::call, 2);
+    }
 
-	static ReturnType get(lua_State* L, int index)
-	{
-		index = lua_absindex(L, index);
-		if (lua_iscfunction(L, index)) {
-			const char* name = lua_getupvalue(L, index, 1);
-			if (name && lua_isuserdata(L, -1)) {
-				name = lua_getupvalue(L, index, 2);
-				if (name && lua_touserdata(L, -1) == CppSignature<FN>::value()) {
-					const FN& func = *reinterpret_cast<const FN*>(lua_touserdata(L, -2));
-					assert(func);
-					lua_pop(L, 2);
-					return func;
-				}
-				lua_pop(L, 1);
-			}
-			lua_pop(L, 1);
-		}
+    static ReturnType get(lua_State* L, int index)
+    {
+        index = lua_absindex(L, index);
+        if (lua_iscfunction(L, index)) {
+            const char* name = lua_getupvalue(L, index, 1);
+            if (name && lua_isuserdata(L, -1)) {
+                name = lua_getupvalue(L, index, 2);
+                if (name && lua_touserdata(L, -1) == CppSignature<FN>::value()) {
+                    const FN& func = *reinterpret_cast<const FN*>(lua_touserdata(L, -2));
+                    assert(func);
+                    lua_pop(L, 2);
+                    return func;
+                }
+                lua_pop(L, 1);
+            }
+            lua_pop(L, 1);
+        }
 
-		return LuaCppFunctionWrapper<FN>::get(L, index);
-	}
+        return LuaCppFunctionWrapper<FN>::get(L, index);
+    }
 
-	static ReturnType opt(lua_State* L, int index, const FN& def)
-	{
-		if (lua_isnoneornil(L, index)) {
-			return def;
-		}
-		else {
-			return get(L, index);
-		}
-	}
+    static ReturnType opt(lua_State* L, int index, const FN& def)
+    {
+        if (lua_isnoneornil(L, index)) {
+            return def;
+        } else {
+            return get(L, index);
+        }
+    }
 };
 
 template <typename R, typename... P>
 struct LuaTypeMapping <R(*)(P...)>
-	: LuaCppFunction <R(*)(P...)> {};
+    : LuaCppFunction <R(*)(P...)> {};
 
 template <typename R, typename... P>
 struct LuaTypeMapping <std::function<R(P...)>>
-	: LuaCppFunction <std::function<R(P...)>> {};
+    : LuaCppFunction <std::function<R(P...)>> {};
 

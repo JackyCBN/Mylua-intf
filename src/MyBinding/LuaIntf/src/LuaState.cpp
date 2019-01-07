@@ -24,93 +24,87 @@
 // DEALINGS IN THE SOFTWARE.
 //
 
-#include <cstdarg>
-#include <cstdarg>
 #ifndef LUAINTF_H
-#include "LuaIntf/LuaIntf.h"
-using namespace LuaIntf;
+    #include "LuaIntf/LuaIntf.h"
+    using namespace LuaIntf;
 #endif
 
 //---------------------------------------------------------------------------
 
 LUA_INLINE void Lua::pushGlobal(lua_State* L, const char* name)
 {
-	const char* p = strchr(name, '.');
-	if (p) {
-		lua_pushglobaltable(L);                 // <table>
-		while (p) {
-			lua_pushlstring(L, name, p - name); // <table> <key>
-			lua_gettable(L, -2);                // <table> <table_value>
-			lua_remove(L, -2);                  // <table_value>
-			if (lua_isnoneornil(L, -1)) return;
-			name = p + 1;
-			p = strchr(name, '.');
-		}
-		lua_pushstring(L, name);                // <last_table> <key>
-		lua_gettable(L, -2);                    // <last_table> <table_value>
-		lua_remove(L, -2);                      // <table_value>
-	}
-	else {
-		lua_getglobal(L, name);
-	}
+    const char* p = strchr(name, '.');
+    if (p) {
+        lua_pushglobaltable(L);                 // <table>
+        while (p) {
+            lua_pushlstring(L, name, p - name); // <table> <key>
+            lua_gettable(L, -2);                // <table> <table_value>
+            lua_remove(L, -2);                  // <table_value>
+            if (lua_isnoneornil(L, -1)) return;
+            name = p + 1;
+            p = strchr(name, '.');
+        }
+        lua_pushstring(L, name);                // <last_table> <key>
+        lua_gettable(L, -2);                    // <last_table> <table_value>
+        lua_remove(L, -2);                      // <table_value>
+    } else {
+        lua_getglobal(L, name);
+    }
 }
 
 LUA_INLINE void Lua::popToGlobal(lua_State* L, const char* name)
 {
-	const char* p = strchr(name, '.');
-	if (p) {
-		lua_pushglobaltable(L);                 // <value> <table>
-		while (p) {
-			lua_pushlstring(L, name, p - name); // <value> <table> <key>
-			lua_gettable(L, -2);                // <value> <table> <table_value>
-			lua_remove(L, -2);                  // <value> <table_value>
-			name = p + 1;
-			p = strchr(name, '.');
-		}
-		lua_pushstring(L, name);                // <value> <last_table> <name>
-		lua_pushvalue(L, -3);                   // <value> <last_table> <name> <value>
-		lua_settable(L, -3);                    // <value> <last_table>
-		lua_pop(L, 2);
-	}
-	else {
-		lua_setglobal(L, name);
-	}
+    const char* p = strchr(name, '.');
+    if (p) {
+        lua_pushglobaltable(L);                 // <value> <table>
+        while (p) {
+            lua_pushlstring(L, name, p - name); // <value> <table> <key>
+            lua_gettable(L, -2);                // <value> <table> <table_value>
+            lua_remove(L, -2);                  // <value> <table_value>
+            name = p + 1;
+            p = strchr(name, '.');
+        }
+        lua_pushstring(L, name);                // <value> <last_table> <name>
+        lua_pushvalue(L, -3);                   // <value> <last_table> <name> <value>
+        lua_settable(L, -3);                    // <value> <last_table>
+        lua_pop(L, 2);
+    } else {
+        lua_setglobal(L, name);
+    }
 }
 
 LUA_INLINE void Lua::exec(lua_State* L, const char* lua_expr, int num_results)
 {
-	lua_pushcfunction(L, &LuaException::traceback);
-	int err =  luaL_loadstring(L, lua_expr);
-	if(err == LUA_OK)
-	{
-		err = lua_pcall(L, 0, num_results, -2);
-	}
+    lua_pushcfunction(L, &LuaException::traceback);
 
-	if(err != LUA_OK)
-	{		
-		lua_remove(L, -2);
-		throw LuaException(L);
-	}
+    int err = luaL_loadstring(L, lua_expr);
 
-	lua_remove(L, -(num_results + 1));
+    if (err == LUA_OK) {
+        err = lua_pcall(L, 0, num_results, -2);
+    }
 
+    if (err != LUA_OK) {
+        lua_remove(L, -2);
+        throw LuaException(L);
+    }
+
+    lua_remove(L, -(num_results + 1));
 }
 
 LUA_INLINE const char* LuaState::pushf(const char* fmt, ...) const
 {
-	va_list argp;
-	va_start(argp, fmt);
-	const char* ret = lua_pushvfstring(L, fmt, argp);
-	va_end(argp);
-
-	return ret;
+    va_list argp;
+    va_start(argp, fmt);
+    const char* ret = lua_pushvfstring(L, fmt, argp);
+    va_end(argp);
+    return ret;
 }
 
 LUA_INLINE int LuaState::error(const char* fmt, ...) const
 {
-	va_list argp;
-	va_start(argp, fmt);
-	lua_pushvfstring(L, fmt, argp);
-	va_end(argp);
-	return lua_error(L);
+    va_list argp;
+    va_start(argp, fmt);
+    lua_pushvfstring(L, fmt, argp);
+    va_end(argp);
+    return lua_error(L);
 }

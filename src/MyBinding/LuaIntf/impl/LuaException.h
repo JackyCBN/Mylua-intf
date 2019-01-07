@@ -27,47 +27,46 @@
 class LuaException : public std::exception
 {
 public:
-	explicit LuaException(lua_State* L) noexcept
-	{
-		if (lua_gettop(L) > 0) {
-			m_what = lua_tostring(L, -1);
-		}
-		else {
-			m_what = "unknown error";
-		}
-	}
+    explicit LuaException(lua_State* L) noexcept
+    {
+        if (lua_gettop(L) > 0) {
+            m_what = lua_tostring(L, -1);
+        } else {
+            m_what = "unknown error";
+        }
+    }
 
-	explicit LuaException(const char* msg) noexcept
-		: m_what(msg)
-	{}
+    explicit LuaException(const char* msg) noexcept
+        : m_what(msg)
+        {}
 
-	explicit LuaException(const std::string& msg) noexcept
-		: m_what(msg)
-	{}
+    explicit LuaException(const std::string& msg) noexcept
+        : m_what(msg)
+        {}
 
-	const char* what() const noexcept
-	{
-		return m_what.c_str();
-	}
+    const char* what() const noexcept
+    {
+        return m_what.c_str();
+    }
 
-	static int traceback(lua_State* L)
-	{
-		if (!lua_isstring(L, 1)) return 1;
-		lua_getglobal(L, "debug");
-		if (!lua_istable(L, -1)) {
-			lua_pop(L, 1);
-			return 1;
-		}
-		lua_getfield(L, -1, "traceback");
-		if (!lua_isfunction(L, -1)) {
-			lua_pop(L, 2);
-			return 1;
-		}
-		lua_pushvalue(L, 1);    // pass error message
-		lua_call(L, 1, 1);      // call debug.traceback
-		return 1;
-	}
+    static int traceback(lua_State* L)
+    {
+        if (!lua_isstring(L, 1)) return 1;
+        lua_getglobal(L, "debug");
+        if (!lua_istable(L, -1)) {
+            lua_pop(L, 1);
+            return 1;
+        }
+        lua_getfield(L, -1, "traceback");
+        if (!lua_isfunction(L, -1)) {
+            lua_pop(L, 2);
+            return 1;
+        }
+        lua_pushvalue(L, 1);    // pass error message
+        lua_call(L, 1, 1);      // call debug.traceback
+        return 1;
+    }
 
 private:
-	std::string m_what;
+    std::string m_what;
 };

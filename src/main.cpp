@@ -92,6 +92,75 @@ void testGc(lua_State* L)
 	//pt2->a = 2;
 	//pt2->b = 3;
 }
+const size_t log_cache_size = 4096;
+static char log_cache[log_cache_size];
+static char lua_tostringcache[log_cache_size];
+
+
+static void doLuaPrint(lua_State* L)
+{
+	const int nargs = lua_gettop(L);
+	try
+	{
+		// do log
+		for (int i = 1; i <= nargs; ++i) {
+			if (i > 1) {
+				strcat_s(log_cache, log_cache_size, "     ");
+			}
+
+			if (lua_isstring(L, i) == 1)
+			{
+				strcat_s(log_cache, log_cache_size, lua_tostring(L, i));
+			}
+			else if (lua_isnil(L, i))
+			{
+				strcat_s(log_cache, log_cache_size, "nil");
+			}
+			else if (lua_isboolean(L, i))
+			{
+				strcat_s(log_cache, log_cache_size, lua_toboolean(L, i) ? "true" : "false");
+			}
+			else
+			{
+				const void* p = lua_topointer(L, i);
+
+				if (p == nullptr)
+				{
+					strcat_s(log_cache, log_cache_size, "nil");
+				}
+				else if (lua_isuserdata(L, i))
+				{
+					strcat_s(log_cache, log_cache_size, luaL_tolstring(L, i, nullptr));
+				}
+				else
+				{
+					strcat_s(log_cache, log_cache_size, luaL_typename(L, i));
+					sprintf_s(log_cache + strlen(log_cache), log_cache_size - strlen(log_cache), ":%p", p);
+				}
+			}
+		}
+		//sLogManager::instance().log(nullptr, level, LogTag::Lua, log_cache);
+		std::cout << log_cache << std::endl;
+	}
+	catch (const std::exception& e)
+	{
+		//sLogManager::instance().logException(LogTag::Lua, e.what());
+	}
+}
+
+static int myLuaPrint(lua_State* L) {
+	memset(log_cache, 0, sizeof(log_cache));
+
+	doLuaPrint(L);
+
+	return 0;
+}
+
+static const struct luaL_Reg printlib[] = {
+	{ "print", myLuaPrint },
+{
+	nullptr, nullptr } /* end of array */
+};
 
 
 int main(int argc, char* argv[])
@@ -99,6 +168,9 @@ int main(int argc, char* argv[])
    lua_State* L = luaL_newstate();
 
    luaL_openlibs(L);
+   lua_getglobal(L, "_G");
+   luaL_setfuncs(L, printlib, 0);
+   lua_pop(L, 1);
    //testGc(L);
    int count = 0;
    int test = 0;

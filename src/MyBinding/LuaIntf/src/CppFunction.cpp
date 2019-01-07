@@ -25,73 +25,69 @@
 //
 
 #ifndef LUAINTF_H
-#include "LuaIntf/LuaIntf.h"
-using namespace LuaIntf;
+    #include "LuaIntf/LuaIntf.h"
+    using namespace LuaIntf;
 #endif
 
 //---------------------------------------------------------------------------
 
 LUA_INLINE int CppFunctor::call(lua_State* L)
 {
-	try {
-		CppFunctor* f = static_cast<CppFunctor*>(lua_touserdata(L, 1));
-		return f->run(L);
-	}
-	catch (std::exception& e) {
-		return luaL_error(L, "%s", e.what());
-	}
+    try {
+        CppFunctor* f = static_cast<CppFunctor*>(lua_touserdata(L, 1));
+        return f->run(L);
+    } catch (std::exception& e) {
+        return luaL_error(L, "%s", e.what());
+    }
 }
 
 LUA_INLINE int CppFunctor::gc(lua_State* L)
 {
-	try {
-		CppFunctor* f = static_cast<CppFunctor*>(lua_touserdata(L, 1));
-		f->~CppFunctor();
-		return 0;
-	}
-	catch (std::exception& e) {
-		return luaL_error(L, "%s", e.what());
-	}
+    try {
+        CppFunctor* f = static_cast<CppFunctor*>(lua_touserdata(L, 1));
+        f->~CppFunctor();
+        return 0;
+    } catch (std::exception& e) {
+        return luaL_error(L, "%s", e.what());
+    }
 }
 
 LUA_INLINE int CppFunctor::callp(lua_State* L)
 {
-	try {
-		CppFunctor* f = *static_cast<CppFunctor**>(lua_touserdata(L, 1));
-		return f->run(L);
-	}
-	catch (std::exception& e) {
-		return luaL_error(L, "%s", e.what());
-	}
+    try {
+        CppFunctor* f = *static_cast<CppFunctor**>(lua_touserdata(L, 1));
+        return f->run(L);
+    } catch (std::exception& e) {
+        return luaL_error(L, "%s", e.what());
+    }
 }
 
 LUA_INLINE int CppFunctor::gcp(lua_State* L)
 {
-	try {
-		CppFunctor* f = *static_cast<CppFunctor**>(lua_touserdata(L, 1));
-		delete f;
-		return 0;
-	}
-	catch (std::exception& e) {
-		return luaL_error(L, "%s", e.what());
-	}
+    try {
+        CppFunctor* f = *static_cast<CppFunctor**>(lua_touserdata(L, 1));
+        delete f;
+        return 0;
+    } catch (std::exception& e) {
+        return luaL_error(L, "%s", e.what());
+    }
 }
 
 LUA_INLINE int CppFunctor::bind(lua_State* L, lua_CFunction call, lua_CFunction gc)
 {
-	lua_newtable(L);
-	lua_pushcfunction(L, call);
-	lua_setfield(L, -2, "__call");
-	lua_pushcfunction(L, gc);
-	lua_setfield(L, -2, "__gc");
-	lua_setmetatable(L, -2);
-	return 1;
+    lua_newtable(L);
+    lua_pushcfunction(L, call);
+    lua_setfield(L, -2, "__call");
+    lua_pushcfunction(L, gc);
+    lua_setfield(L, -2, "__gc");
+    lua_setmetatable(L, -2);
+    return 1;
 }
 
 LUA_INLINE int CppFunctor::pushToStack(lua_State* L, CppFunctor* f)
 {
-	// need to create userdata, lightuserdata can't be gc
-	CppFunctor** p = static_cast<CppFunctor**>(lua_newuserdata(L, sizeof(CppFunctor*)));
-	*p = f;
-	return bind(L, &callp, &gcp);
+    // need to create userdata, lightuserdata can't be gc
+    CppFunctor** p = static_cast<CppFunctor**>(lua_newuserdata(L, sizeof(CppFunctor*)));
+    *p = f;
+    return bind(L, &callp, &gcp);
 }
